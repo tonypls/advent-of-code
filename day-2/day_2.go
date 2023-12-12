@@ -16,37 +16,42 @@ type CubeCount struct {
 }
 
 func main() {
-    // Open the first file
-    file1, err := os.Open("test.txt")
+    // Open and process 'test.txt' in both modes
+    sumOfTestGameIDsCumulative, sumOfTestGameIDsReset := processBothModes("test.txt")
+
+    // Open and process 'input1.txt' in both modes
+    sumOfInput1GameIDsCumulative, sumOfInput1GameIDsReset := processBothModes("input1.txt")
+
+    // Print results
+    fmt.Println("Sum of IDs of possible games in 'test.txt' (cumulative count):", sumOfTestGameIDsCumulative)
+    fmt.Println("Sum of IDs of possible games in 'test.txt' (reset count):", sumOfTestGameIDsReset)
+    fmt.Println("Sum of IDs of possible games in 'input1.txt' (cumulative count):", sumOfInput1GameIDsCumulative)
+    fmt.Println("Sum of IDs of possible games in 'input1.txt' (reset count):", sumOfInput1GameIDsReset)
+}
+
+func processBothModes(filename string) (int, int) {
+    file, err := os.Open(filename)
     if err != nil {
-        fmt.Println("Error opening file1:", err)
-        return
+        fmt.Println("Error opening file:", err)
+        return 0, 0
     }
-    defer file1.Close()
+    defer file.Close()
 
-    // Open the second file
-    file2, err := os.Open("input1.txt")
+    // Process file in cumulative mode
+    sumOfGameIDsCumulative := processFile(file, false)
+
+    // Re-open file for reset mode processing
+    file, err = os.Open(filename)
     if err != nil {
-        fmt.Println("Error opening file2:", err)
-        return
+        fmt.Println("Error re-opening file:", err)
+        return sumOfGameIDsCumulative, 0
     }
-    defer file2.Close()
+    defer file.Close()
 
-    // Process each file, false indicates cumulative count
-    // testSum := processFile(file1, false)
-    // fmt.Println("Sum of IDs of possible games (cumulative count):", testSum)
+    // Process file in reset mode
+    sumOfGameIDsReset := processFile(file, true)
 
-    // Reset the counter for each part of the game
-    testSumReset := processFile(file1, false)
-    fmt.Println("Sum of IDs of possible games (reset count):", testSumReset)
-
-	  // Process each file, false indicates cumulative count
-	//   sumOfPossibleGameIDs :=  processFile(file2, false)
-	//   fmt.Println("Sum of IDs of possible games (cumulative count):", sumOfPossibleGameIDs)
-  
-	  // Reset the counter for each part of the game
-	  sumOfPossibleGameIDsReset :=  processFile(file2, true)
-	  fmt.Println("Sum of IDs of possible games (reset count):", sumOfPossibleGameIDsReset)
+    return sumOfGameIDsCumulative, sumOfGameIDsReset
 }
 
 func processFile(file *os.File, resetAfterEachPart bool) int {
