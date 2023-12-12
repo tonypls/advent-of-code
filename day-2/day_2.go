@@ -27,6 +27,55 @@ func main() {
     fmt.Println("Sum of IDs of possible games in 'test.txt' (reset count):", sumOfTestGameIDsReset)
     fmt.Println("Sum of IDs of possible games in 'input1.txt' (cumulative count):", sumOfInput1GameIDsCumulative)
     fmt.Println("Sum of IDs of possible games in 'input1.txt' (reset count):", sumOfInput1GameIDsReset)
+
+    // Open and process the file for the second part of the puzzle
+    sumOfPowers := processFileForMinSet("input1.txt")
+    fmt.Println("Sum of the power of the minimum sets:", sumOfPowers)
+}
+
+func processFileForMinSet(filename string) int {
+    file, err := os.Open(filename)
+    if err != nil {
+        fmt.Println("Error opening file:", err)
+        return 0
+    }
+    defer file.Close()
+
+    var sumOfPowers int
+    scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        game := scanner.Text()
+        power := calculateMinSetPower(game)
+        sumOfPowers += power
+    }
+
+    if err := scanner.Err(); err != nil {
+        fmt.Println("Error reading from file:", err)
+    }
+
+    return sumOfPowers
+}
+
+func calculateMinSetPower(game string) int {
+    parts := strings.Split(game, ";")
+    minSet := CubeCount{}
+
+    for _, part := range parts {
+        partRequired := CubeCount{}
+        processPart(part, &partRequired)
+        minSet.red = max(minSet.red, partRequired.red)
+        minSet.green = max(minSet.green, partRequired.green)
+        minSet.blue = max(minSet.blue, partRequired.blue)
+    }
+
+    return minSet.red * minSet.green * minSet.blue
+}
+
+func max(a, b int) int {
+    if a > b {
+        return a
+    }
+    return b
 }
 
 func processBothModes(filename string) (int, int) {
